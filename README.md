@@ -5,11 +5,15 @@ A simple browser-based MQTT client using MQTT.js over WebSocket. This client all
 ## Features
 
 - Connect to any MQTT broker that supports WebSocket connections
-- Subscribe to MQTT topics
+- Subscribe/Unsubscribe to MQTT topics
 - Publish messages to topics
-- Real-time message display
+- Real-time message display with auto-scroll
+- Advanced logging controls:
+  - Filter messages by type
+  - Auto-scroll toggle
+  - Download logs
+  - Open logs in separate window
 - Connection status monitoring
-- Detailed logging with different message types
 - Support for both ws:// and wss:// protocols
 
 ## Setup
@@ -37,10 +41,17 @@ Note: When running locally over HTTP, you can use regular WebSocket (ws://) conn
 2. Click "Connect"
 3. Wait for "Status: Connected"
 
-### Subscribing to a topic
+### Managing Topic Subscriptions
 1. Enter a topic (e.g., "test/topic")
-2. Click "Subscribe"
-3. Messages will appear in the messages area
+2. Click "Subscribe" to start receiving messages
+3. Click "Unsubscribe" to stop receiving messages
+4. Messages will appear in the messages area
+
+### Using Log Controls
+1. Toggle auto-scroll with the checkbox
+2. Filter messages using the multi-select dropdown
+3. Open logs in a new window using "Open Logs Window"
+4. Download visible logs using "Download Logs"
 
 ### Publishing messages
 1. Enter a topic
@@ -63,6 +74,22 @@ Note: When running locally over HTTP, you can use regular WebSocket (ws://) conn
   - Red: Error messages
   - Orange: Warning messages
   - Gray: MQTT messages
+
+## Message Types
+
+Different colors indicate different message types:
+- Blue: Info messages
+- Green: Success messages (connections, subscriptions)
+- Red: Error messages
+- Orange: Warning messages
+- Gray: MQTT messages
+
+## Log Management
+
+- **Auto-scroll:** Automatically scroll to new messages
+- **Message Filtering:** Show/hide specific message types
+- **External Window:** View logs in a separate window
+- **Download:** Save visible messages as a text file
 
 ## Security Notes
 
