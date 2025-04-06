@@ -18,6 +18,12 @@ const logFilter = document.getElementById('log-filter');
 const openLogsBtn = document.getElementById('open-logs-btn');
 const unsubscribeBtn = document.getElementById('unsubscribe-btn');
 const downloadLogsBtn = document.getElementById('download-logs-btn');
+const mqttUsername = document.getElementById('mqtt-username');
+const mqttPassword = document.getElementById('mqtt-password');
+const subscribeQoS = document.getElementById('subscribe-qos');
+const publishQoS = document.getElementById('publish-qos');
+const retainMessage = document.getElementById('retain-message');
+const statsPanel = document.getElementById('connection-stats');
 let logsWindow = null;
 let selectedFilters = Array.from(logFilter.selectedOptions).map(opt => opt.value);
 
@@ -70,7 +76,7 @@ function validateAndFormatUrl(host, port, protocol) {
 }
 
 function getMQTTOptions(urlObj) {
-    return {
+    const options = {
         protocol: urlObj.protocol,
         hostname: urlObj.hostname,
         port: urlObj.port,
@@ -80,9 +86,46 @@ function getMQTTOptions(urlObj) {
         clean: true,
         reconnectPeriod: 1000,
         connectTimeout: 5000,
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
+        username: mqttUsername.value || undefined,
+        password: mqttPassword.value || undefined,
+        resubscribe: true
     };
+    return options;
 }
+
+// Add statistics tracking
+const stats = {
+    connectTime: null,
+    messagesSent: 0,
+    messagesReceived: 0,
+    bytesTransferred: 0,
+    lastMessageTime: null,
+    reconnectAttempts: 0,
+    maxReconnectDelay: 30000,
+    storage: {
+        maxMessages: 1000,
+        key: 'mqtt_message_history'
+    }
+};
+
+// Initialize local storage
+const storage = {
+    saveMessage(topic, message, type) {
+        const messages = this.getMessages();
+        messages.unshift({ topic, message, type, timestamp: new Date().toISOString() });
+        if (messages.length > stats.storage.maxMessages) {
+            messages.pop();
+        }
+        localStorage.setItem(stats.storage.key, JSON.stringify(messages));
+    },
+    getMessages() {
+        return JSON.parse(localStorage.getItem(stats.storage.key) || '[]');
+    },
+    clear() {
+        localStorage.removeItem(stats.storage.key);
+    }
+};
 
 // Update placeholder to show MQTT support
 brokerUrl.placeholder = isSecureContext() ? 
@@ -217,7 +260,10 @@ connectBtn.addEventListener('click', () => {
             clean: true,
             reconnectPeriod: 1000,
             connectTimeout: 5000,
-            rejectUnauthorized: false
+            rejectUnauthorized: false,
+            username: mqttUsername.value || undefined,
+            password: mqttPassword.value || undefined,
+            resubscribe: true
         };
         
         log('INFO', 'Connecting with options:', options);
@@ -229,6 +275,14 @@ connectBtn.addEventListener('click', () => {
         }
 
         client = mqtt.connect(options);
+
+        // Reset statistics
+        stats.connectTime = Date.now();
+        stats.reconnectAttempts = 0;
+        statsPanel.classList.remove('hidden');
+        
+        // Start stats update interval
+        const statsInterval = setInterval(updateStats, 1000);
 
         // Set connection timeout
         const timeoutId = setTimeout(() => {
@@ -263,6 +317,8 @@ connectBtn.addEventListener('click', () => {
         });
 
         client.on('close', () => {
+            clearInterval(statsInterval);
+            statsPanel.classList.add('hidden');
             log('WARN', 'Connection closed');
             statusDiv.textContent = 'Status: Disconnected';
             setConnectedState(false);
@@ -273,7 +329,9 @@ connectBtn.addEventListener('click', () => {
         });
 
         client.on('reconnect', () => {
-            log('INFO', 'Attempting to reconnect');
+            stats.reconnectAttempts++;
+            const delay = Math.min(1000 * Math.pow(2, stats.reconnectAttempts), stats.maxReconnectDelay);
+            log('INFO', `Reconnection attempt ${stats.reconnectAttempts} (delay: ${delay}ms)`);
         });
 
         client.on('offline', () => {
@@ -281,6 +339,12 @@ connectBtn.addEventListener('click', () => {
         });
 
         client.on('message', (topic, message) => {
+            stats.messagesReceived++;
+            stats.bytesTransferred += message.length;
+            stats.lastMessageTime = Date.now();
+            
+            // Store message locally
+            storage.saveMessage(topic, message.toString(), 'received');
             log('MESSAGE', `${topic}: ${message.toString()}`);
         });
 
@@ -306,7 +370,11 @@ subscribeBtn.addEventListener('click', () => {
     }
 
     log('INFO', `Subscribing to topic: ${subscribeTopic.value}`);
-    client.subscribe(subscribeTopic.value, (err) => {
+    const options = {
+        qos: parseInt(subscribeQoS.value)
+    };
+    
+    client.subscribe(subscribeTopic.value, options, (err) => {
         if (err) {
             log('ERROR', 'Subscribe error:', err);
             alert('Failed to subscribe: ' + err.message);
@@ -324,7 +392,17 @@ publishBtn.addEventListener('click', () => {
     }
 
     log('INFO', `Publishing to ${publishTopic.value}:`, publishMessage.value);
-    client.publish(publishTopic.value, publishMessage.value, (err) => {
+    const options = {
+        qos: parseInt(publishQoS.value),
+        retain: retainMessage.checked
+    };
+    
+    client.publish(publishTopic.value, publishMessage.value, options, (err) => {
+        if (!err) {
+            stats.messagesSent++;
+            stats.bytesTransferred += publishMessage.value.length;
+            storage.saveMessage(publishTopic.value, publishMessage.value, 'sent');
+        }
         if (err) {
             log('ERROR', 'Publish error:', err);
             alert('Failed to publish: ' + err.message);
@@ -381,4 +459,17 @@ function setConnectedState(connected) {
     subscribeBtn.disabled = !connected;
     unsubscribeBtn.disabled = !connected;
     publishBtn.disabled = !connected;
+}
+
+// Add connection statistics update
+function updateStats() {
+    if (!stats.connectTime) return;
+    
+    const uptime = Math.floor((Date.now() - stats.connectTime) / 1000);
+    document.getElementById('uptime').textContent = `${uptime}s`;
+    document.getElementById('msgs-sent').textContent = stats.messagesSent;
+    document.getElementById('msgs-received').textContent = stats.messagesReceived;
+    document.getElementById('bytes-transferred').textContent = stats.bytesTransferred;
+    document.getElementById('last-message-time').textContent = 
+        stats.lastMessageTime ? new Date(stats.lastMessageTime).toLocaleString() : 'Never';
 }

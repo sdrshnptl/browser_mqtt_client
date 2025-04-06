@@ -22,13 +22,29 @@
             </select>
             <input type="text" id="broker-url" placeholder="broker.emqx.io">
             <input type="text" id="broker-port" placeholder="Port" value="1883" size="6">
+            <div class="auth-section">
+                <input type="text" id="mqtt-username" placeholder="Username (optional)">
+                <input type="password" id="mqtt-password" placeholder="Password (optional)">
+            </div>
             <button id="connect-btn">Connect</button>
             <button id="disconnect-btn" disabled>Disconnect</button>
             <div id="connection-status">Status: Disconnected</div>
+            <div id="connection-stats" class="stats-panel hidden">
+                <div>Uptime: <span id="uptime">0s</span></div>
+                <div>Messages Sent: <span id="msgs-sent">0</span></div>
+                <div>Messages Received: <span id="msgs-received">0</span></div>
+                <div>Bytes Transferred: <span id="bytes-transferred">0</span></div>
+                <div>Last Message: <span id="last-message-time">Never</span></div>
+            </div>
         </div>
 
         <div class="subscribe-section">
             <input type="text" id="subscribe-topic" placeholder="Topic to subscribe">
+            <select id="subscribe-qos">
+                <option value="0">QoS 0</option>
+                <option value="1">QoS 1</option>
+                <option value="2">QoS 2</option>
+            </select>
             <div class="button-group">
                 <button id="subscribe-btn" disabled>Subscribe</button>
                 <button id="unsubscribe-btn" disabled>Unsubscribe</button>
@@ -38,6 +54,15 @@
         <div class="publish-section">
             <input type="text" id="publish-topic" placeholder="Topic to publish">
             <input type="text" id="publish-message" placeholder="Message to publish">
+            <select id="publish-qos">
+                <option value="0">QoS 0</option>
+                <option value="1">QoS 1</option>
+                <option value="2">QoS 2</option>
+            </select>
+            <div class="control-item">
+                <input type="checkbox" id="retain-message">
+                <label for="retain-message">Retain</label>
+            </div>
             <button id="publish-btn" disabled>Publish</button>
         </div>
 
