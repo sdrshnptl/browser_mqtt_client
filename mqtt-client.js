@@ -20,12 +20,13 @@ function validateAndFormatUrl(url) {
     try {
         // Handle raw hostname/IP inputs
         if (!url.includes('://')) {
-            url = 'ws://' + url;
+            // Default to MQTT protocol for raw inputs
+            url = 'mqtt://' + url;
         }
         
         const urlObj = new URL(url);
         
-        // Force WSS when on HTTPS
+        // Force WSS when on HTTPS for WebSocket connections
         if (isSecureContext() && urlObj.protocol === 'ws:') {
             urlObj.protocol = 'wss:';
             if (urlObj.port === '8083') {
@@ -36,6 +37,12 @@ function validateAndFormatUrl(url) {
         // Set default ports based on protocol
         if (!urlObj.port) {
             switch (urlObj.protocol) {
+                case 'mqtt:':
+                    urlObj.port = '1883';
+                    break;
+                case 'mqtts:':
+                    urlObj.port = '8883';
+                    break;
                 case 'ws:':
                     urlObj.port = '8083';
                     break;
@@ -43,12 +50,13 @@ function validateAndFormatUrl(url) {
                     urlObj.port = '8084';
                     break;
                 default:
-                    throw new Error('Only WebSocket protocols (ws:// or wss://) are supported in browser');
+                    throw new Error('Unsupported protocol. Use mqtt://, ws:// or wss://');
             }
         }
         
-        // Add /mqtt path for WebSocket connections
-        if (!urlObj.pathname || urlObj.pathname === '/') {
+        // Add /mqtt path only for WebSocket connections
+        if ((urlObj.protocol === 'ws:' || urlObj.protocol === 'wss:') && 
+            (!urlObj.pathname || urlObj.pathname === '/')) {
             urlObj.pathname = '/mqtt';
         }
         
@@ -73,10 +81,10 @@ function getMQTTOptions(urlObj) {
     };
 }
 
-// Update placeholder based on context
+// Update placeholder to show MQTT support
 brokerUrl.placeholder = isSecureContext() ? 
-    'wss://broker.emqx.io:8084' : 
-    'ws://broker.emqx.io:8083';
+    'wss://broker.emqx.io:8084 or mqtt://broker.emqx.io:1883' : 
+    'broker.emqx.io:1883 or ws://broker.emqx.io:8083';
 
 function log(type, message, data = null) {
     const timestamp = new Date().toISOString();
