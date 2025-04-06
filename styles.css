@@ -150,6 +150,28 @@ button:disabled {
     text-align: right;
 }
 
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+}
+
+.social-link img {
+    width: 24px;
+    height: 24px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.social-link:hover img {
+    opacity: 1;
+}
+
 .button-group {
     display: inline-flex;
     gap: 10px;

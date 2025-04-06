@@ -33,7 +33,7 @@ if ('Notification' in window) {
 function showNotification(title, options = {}) {
     if (notificationsEnabled) {
         const notification = new Notification(title, {
-            icon: 'https://mqtt.org/favicon.ico',
+            icon: 'app-icon.png',
             ...options
         });
         
