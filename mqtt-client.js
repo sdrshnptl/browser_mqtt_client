@@ -12,36 +12,43 @@ const publishMessage = document.getElementById('publish-message');
 const publishBtn = document.getElementById('publish-btn');
 const messagesDiv = document.getElementById('messages');
 
+function isSecureContext() {
+    return window.location.protocol === 'https:';
+}
+
 function validateAndFormatUrl(url) {
     try {
         // Handle raw hostname/IP inputs
         if (!url.includes('://')) {
-            url = 'mqtt://' + url;
+            url = 'ws://' + url;
         }
         
         const urlObj = new URL(url);
         
+        // Force WSS when on HTTPS
+        if (isSecureContext() && urlObj.protocol === 'ws:') {
+            urlObj.protocol = 'wss:';
+            if (urlObj.port === '8083') {
+                urlObj.port = '8084';
+            }
+        }
+
         // Set default ports based on protocol
         if (!urlObj.port) {
             switch (urlObj.protocol) {
-                case 'mqtt:':
-                    urlObj.port = '1883';
-                    break;
-                case 'mqtts:':
-                    urlObj.port = '8883';
-                    break;
                 case 'ws:':
                     urlObj.port = '8083';
                     break;
                 case 'wss:':
                     urlObj.port = '8084';
                     break;
+                default:
+                    throw new Error('Only WebSocket protocols (ws:// or wss://) are supported in browser');
             }
         }
         
-        // Add /mqtt path only for WebSocket connections
-        if ((urlObj.protocol === 'ws:' || urlObj.protocol === 'wss:') && 
-            (!urlObj.pathname || urlObj.pathname === '/')) {
+        // Add /mqtt path for WebSocket connections
+        if (!urlObj.pathname || urlObj.pathname === '/') {
             urlObj.pathname = '/mqtt';
         }
         
@@ -66,8 +73,10 @@ function getMQTTOptions(urlObj) {
     };
 }
 
-// Update placeholder in HTML
-brokerUrl.placeholder = 'broker.emqx.io or mqtt://broker.emqx.io:1883';
+// Update placeholder based on context
+brokerUrl.placeholder = isSecureContext() ? 
+    'wss://broker.emqx.io:8084' : 
+    'ws://broker.emqx.io:8083';
 
 function log(type, message, data = null) {
     const timestamp = new Date().toISOString();

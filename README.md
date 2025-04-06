@@ -20,14 +20,20 @@ A simple browser-based MQTT client using MQTT.js over WebSocket. This client all
 
 ## Common MQTT Broker URLs
 
-- EMQX: `ws://broker.emqx.io:8083/mqtt`
-- HiveMQ: `ws://broker.hivemq.com:8000/mqtt`
-- Mosquitto: `ws://test.mosquitto.org:8080`
+When accessing the client over HTTPS, you must use secure WebSocket (wss://) connections:
+
+- EMQX: `wss://broker.emqx.io:8084/mqtt`
+- HiveMQ: `wss://broker.hivemq.com:8884/mqtt`
+- Mosquitto: `wss://test.mosquitto.org:8081`
+
+Note: When running locally over HTTP, you can use regular WebSocket (ws://) connections.
 
 ## Usage Examples
 
 ### Connecting to a broker
 1. Enter the broker WebSocket URL
+   - Use `wss://` URLs when accessing over HTTPS
+   - Use `ws://` URLs only when accessing locally over HTTP
 2. Click "Connect"
 3. Wait for "Status: Connected"
 
@@ -43,10 +49,10 @@ A simple browser-based MQTT client using MQTT.js over WebSocket. This client all
 
 ## Protocol Support
 
-- WebSocket (ws://) - Default port 8083
-- Secure WebSocket (wss://) - Default port 8084
-- MQTT (mqtt://) - Default port 1883 (browser security may block this)
-- Secure MQTT (mqtts://) - Default port 8883 (browser security may block this)
+- Secure WebSocket (wss://) - Default port 8084 - **Recommended for HTTPS sites**
+- WebSocket (ws://) - Default port 8083 - Only works when accessing over HTTP
+- MQTT (mqtt://) - Default port 1883 (Not supported in browsers)
+- Secure MQTT (mqtts://) - Default port 8883 (Not supported in browsers)
 
 ## Error Messages
 
@@ -57,6 +63,12 @@ A simple browser-based MQTT client using MQTT.js over WebSocket. This client all
   - Red: Error messages
   - Orange: Warning messages
   - Gray: MQTT messages
+
+## Security Notes
+
+- When accessing this client over HTTPS, you must use secure WebSocket (wss://) connections
+- Attempting to connect to insecure WebSocket endpoints (ws://) from HTTPS will be blocked by the browser
+- For local development over HTTP, both ws:// and wss:// protocols are supported
 
 ## Browser Compatibility
 
