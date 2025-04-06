@@ -21,6 +21,27 @@ const downloadLogsBtn = document.getElementById('download-logs-btn');
 let logsWindow = null;
 let selectedFilters = Array.from(logFilter.selectedOptions).map(opt => opt.value);
 
+let notificationsEnabled = false;
+
+// Request notification permission
+if ('Notification' in window) {
+    Notification.requestPermission().then(permission => {
+        notificationsEnabled = permission === 'granted';
+    });
+}
+
+function showNotification(title, options = {}) {
+    if (notificationsEnabled) {
+        const notification = new Notification(title, {
+            icon: 'https://mqtt.org/favicon.ico',
+            ...options
+        });
+        
+        // Auto close after 5 seconds
+        setTimeout(() => notification.close(), 5000);
+    }
+}
+
 function isSecureContext() {
     return window.location.protocol === 'https:';
 }
@@ -225,18 +246,30 @@ connectBtn.addEventListener('click', () => {
             log('SUCCESS', 'Connected to broker');
             statusDiv.textContent = 'Status: Connected';
             setConnectedState(true);
+            showNotification('MQTT Connected', {
+                body: `Connected to ${brokerUrl.value}`,
+                tag: 'mqtt-connection'
+            });
         });
 
         client.on('error', (err) => {
             log('ERROR', 'Connection error:', err);
             statusDiv.textContent = 'Status: Error - ' + err.message;
             setConnectedState(false);
+            showNotification('MQTT Error', {
+                body: err.message,
+                tag: 'mqtt-error'
+            });
         });
 
         client.on('close', () => {
             log('WARN', 'Connection closed');
             statusDiv.textContent = 'Status: Disconnected';
             setConnectedState(false);
+            showNotification('MQTT Disconnected', {
+                body: `Disconnected from ${brokerUrl.value}`,
+                tag: 'mqtt-connection'
+            });
         });
 
         client.on('reconnect', () => {
