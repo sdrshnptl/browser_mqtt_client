@@ -1,0 +1,77 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.connection-section,
+.subscribe-section,
+.publish-section {
+    margin-bottom: 20px;
+}
+
+input {
+    padding: 8px;
+    margin-right: 10px;
+    width: 300px;
+}
+
+button {
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+#connection-status {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.messages-section {
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 300px;
+    overflow-y: auto;
+}
+
+#messages {
+    font-family: monospace;
+}
+
+.message {
+    margin: 5px 0;
+    padding: 5px;
+    background-color: #f0f0f0;
+    font-family: monospace;
+    word-break: break-all;
+}
+
+.message.error {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+.message.warn {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.message.success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.message.info {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.message.message {
+    background-color: #f5f5f5;
+    color: #333;
+}

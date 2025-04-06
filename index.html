@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser MQTT Client</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Browser MQTT Client</h1>
+        
+        <div class="connection-section">
+            <input type="text" id="broker-url" placeholder="ws://broker.emqx.io:8083/mqtt">
+            <button id="connect-btn">Connect</button>
+            <button id="disconnect-btn" disabled>Disconnect</button>
+            <div id="connection-status">Status: Disconnected</div>
+        </div>
+
+        <div class="subscribe-section">
+            <input type="text" id="subscribe-topic" placeholder="Topic to subscribe">
+            <button id="subscribe-btn" disabled>Subscribe</button>
+        </div>
+
+        <div class="publish-section">
+            <input type="text" id="publish-topic" placeholder="Topic to publish">
+            <input type="text" id="publish-message" placeholder="Message to publish">
+            <button id="publish-btn" disabled>Publish</button>
+        </div>
+
+        <div class="messages-section">
+            <h3>Messages</h3>
+            <div id="messages"></div>
+        </div>
+    </div>
+    <script src="mqtt-client.js"></script>
+</body>
+</html>
